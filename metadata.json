@@ -1,0 +1,13 @@
+{
+  "name": "SplitMate - AI Expense Splitter",
+  "description": "A smart group expense manager that uses AI to log spendings and calculate fair settlements between families and friends.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "AI-powered expense logging",
+    "Group/Family management",
+    "Automated debt settlement",
+    "Voice-to-text recognition"
+  ]
+}
