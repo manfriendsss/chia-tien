@@ -307,38 +307,100 @@ const App = () => {
         {activeTab === 'summary' && (
           <div className="space-y-6 animate-in fade-in">
             <div className={`p-6 rounded-[2rem] shadow-sm border ${styles.card}`}>
-              <h3 className={`text-[10px] font-black uppercase mb-6 tracking-widest flex items-center gap-2 ${styles.textMuted}`}>
-                <Wallet size={14} className="text-emerald-500" /> TÌNH TRẠNG CHI TIÊU NHÓM
-              </h3>
-              {summary.familyStats.map((fam) => {
-                const colorConfig = COLOR_OPTIONS.find(c => c.id === fam.colorId);
-                return (
-                  <div key={fam.id} className="mb-8 last:mb-0">
-                    <div className="flex justify-between items-end mb-3">
-                      <span className="text-xs font-black">{fam.name}</span>
-                      <span className="text-xs font-black text-emerald-600">{formatMoney(fam.paid)}</span>
+              <div className="flex items-center justify-between mb-8">
+                <h3 className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${styles.textMuted}`}>
+                  <Wallet size={14} className="text-emerald-500" /> TÌNH TRẠNG ĐÓNG GÓP
+                </h3>
+                <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                  Mục tiêu: {formatMoney(summary.avgPerFamily)}
+                </span>
+              </div>
+              
+              <div className="space-y-10">
+                {summary.familyStats.map((fam) => {
+                  const colorConfig = COLOR_OPTIONS.find(c => c.id === fam.colorId) || COLOR_OPTIONS[0];
+                  // Tính % dựa trên share bình quân
+                  const progressValue = summary.avgPerFamily > 0 ? (fam.paid / summary.avgPerFamily) * 100 : 0;
+                  const displayProgress = Math.min(100, progressValue);
+                  const isOverpaid = progressValue > 100.1;
+
+                  // Lấy màu fill chính xác
+                  const fillColor = colorConfig.id === 'emerald' ? 'bg-emerald-500' :
+                                   colorConfig.id === 'orange' ? 'bg-orange-500' :
+                                   colorConfig.id === 'purple' ? 'bg-purple-500' :
+                                   colorConfig.id === 'blue' ? 'bg-blue-500' :
+                                   colorConfig.id === 'pink' ? 'bg-pink-500' : 'bg-slate-500';
+
+                  return (
+                    <div key={fam.id} className="relative group">
+                      {/* Header của từng nhóm */}
+                      <div className="flex justify-between items-end mb-4">
+                        <div>
+                          <p className="text-sm font-black tracking-tight flex items-center gap-2">
+                            {fam.name}
+                            {isOverpaid && <Sparkles size={12} className="text-amber-400 animate-pulse" />}
+                          </p>
+                          <p className={`text-[9px] font-bold uppercase mt-0.5 ${styles.textMuted}`}>
+                            {fam.members.join(' • ')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-black text-emerald-600 font-display">{formatMoney(fam.paid)}</p>
+                          <p className={`text-[9px] font-black uppercase mt-0.5 ${fam.balance >= 0 ? 'text-emerald-500' : 'text-orange-500'}`}>
+                            {fam.balance >= 0 ? `+ ${formatMoney(fam.balance)}` : `- ${formatMoney(Math.abs(fam.balance))}`}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar Container */}
+                      <div className="relative">
+                        {/* Background bar */}
+                        <div className={`${isDark ? 'bg-slate-800' : 'bg-slate-100'} h-5 rounded-full overflow-hidden shadow-inner relative border ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                          {/* Paid portion bar */}
+                          <div 
+                            className={`h-full transition-all duration-1000 ease-out rounded-full shadow-md flex items-center justify-end px-2 ${fillColor}`} 
+                            style={{ width: `${displayProgress}%`, minWidth: progressValue > 0 ? '2.5rem' : '0' }}
+                          >
+                            {/* Hiệu ứng bóng bẩy */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0"></div>
+                            
+                            {/* Label % luôn bên trong bar */}
+                            {progressValue > 0 && (
+                              <span className="text-[8px] font-black text-white whitespace-nowrap">
+                                {Math.round(progressValue)}%
+                              </span>
+                            )}
+                          </div>
+                          
+                          {/* Target Marker (Vạch 100%) */}
+                          <div className="absolute top-0 bottom-0 right-0 w-1 bg-emerald-500/30 dark:bg-emerald-400/30 z-0"></div>
+                        </div>
+                      </div>
+
+                      {/* Thông báo trạng thái nhỏ bên dưới */}
+                      <div className="flex justify-between items-center mt-2.5 px-0.5">
+                        <span className={`text-[8px] font-bold uppercase tracking-widest ${progressValue >= 100 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                          {progressValue >= 100 ? '✅ Hoàn thành share' : `Còn thiếu: ${formatMoney(Math.abs(fam.balance))}`}
+                        </span>
+                        {isOverpaid && (
+                          <span className="text-[8px] font-black uppercase text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full ring-1 ring-amber-500/20">
+                            Chi vượt {Math.round(progressValue - 100)}%
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className={`${isDark ? 'bg-[#2D3136]' : 'bg-slate-100'} h-3 rounded-full overflow-hidden p-0.5 shadow-inner`}>
-                      <div 
-                        className={`h-full transition-all duration-1000 rounded-full ${colorConfig.classes.split(' ')[2].replace('border-', 'bg-')}`} 
-                        style={{ width: `${Math.min(100, (fam.paid / (summary.totalSpent || 1)) * (families.length * 100))}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between mt-3">
-                      <p className={`text-[9px] font-bold uppercase ${styles.textMuted}`}>{fam.members.join(', ')}</p>
-                      <p className={`text-[9px] font-black uppercase ${fam.balance >= 0 ? 'text-emerald-500' : 'text-orange-500'}`}>
-                        {fam.balance >= 0 ? `Dư: ${formatMoney(fam.balance)}` : `Thiếu: ${formatMoney(Math.abs(fam.balance))}`}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
-            <div className={`p-6 rounded-[2rem] shadow-lg border-2 border-emerald-500/20 ${isDark ? 'bg-emerald-900/10' : 'bg-emerald-50/50'} transition-all`}>
-              <h3 className="text-[10px] font-black uppercase text-emerald-600 mb-6 tracking-widest flex items-center gap-2">
-                <CreditCard size={16} /> KẾ HOẠCH QUYẾT TOÁN NHANH
-              </h3>
+            {/* Transaction Plan Card - Redesigned */}
+            <div className={`p-6 rounded-[2rem] shadow-xl border-2 ${isDark ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-emerald-50/50 border-emerald-500/10'}`}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[10px] font-black uppercase text-emerald-600 tracking-widest flex items-center gap-2">
+                  <CreditCard size={14} /> QUYẾT TOÁN CÔNG BẰNG
+                </h3>
+              </div>
               {summary.transactions.length === 0 ? (
                 <p className={`text-xs italic text-center py-6 ${styles.textMuted}`}>Các nhóm đã chi tiêu rất cân bằng.</p>
               ) : (
