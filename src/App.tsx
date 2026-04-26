@@ -18,30 +18,51 @@ const COLOR_OPTIONS = [
 
 const App = () => {
   // 1. Quản lý Theme (Sáng/Tối) - Sử dụng màu trung tính bảo vệ mắt
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('splitmate_theme') || 'light';
+  });
   
   // 2. State Quản lý Nhóm/Thành viên
-  const [families, setFamilies] = useState([
-    { id: 'f1', name: 'Nhà Mô Mía', members: ['QAnh', 'Linh'], colorId: 'emerald' },
-    { id: 'f2', name: 'Nhà Thỏ Bắp', members: ['Hưng', 'Trang'], colorId: 'orange' },
-    { id: 'f3', name: 'Nhà Gấu', members: ['Hùng', 'Mai Anh'], colorId: 'purple' }
-  ]);
+  const [families, setFamilies] = useState(() => {
+    const saved = localStorage.getItem('splitmate_families');
+    return saved ? JSON.parse(saved) : [
+      { id: 'f1', name: 'Nhà Mô Mía', members: ['QAnh', 'Linh'], colorId: 'emerald' },
+      { id: 'f2', name: 'Nhà Thỏ Bắp', members: ['Hưng', 'Trang'], colorId: 'orange' },
+      { id: 'f3', name: 'Nhà Gấu', members: ['Hùng', 'Mai Anh'], colorId: 'purple' }
+    ];
+  });
 
   const allMembers = useMemo(() => families.flatMap(f => f.members), [families]);
 
   // 3. State Chi tiêu - Khôi phục 10 khoản chi ban đầu
-  const [expenses, setExpenses] = useState([
-    { id: 1, payer: 'Trang', amount: 491000, note: 'Aeon 1', date: new Date().toISOString() },
-    { id: 2, payer: 'Trang', amount: 77000, note: 'Aeon 2', date: new Date().toISOString() },
-    { id: 3, payer: 'Trang', amount: 120000, note: 'Thịt lợn', date: new Date().toISOString() },
-    { id: 4, payer: 'Trang', amount: 145000, note: 'Dưa vàng', date: new Date().toISOString() },
-    { id: 5, payer: 'Trang', amount: 15000, note: 'Bánh mì', date: new Date().toISOString() },
-    { id: 6, payer: 'Trang', amount: 120000, note: 'Thịt bò và nấm kim châm', date: new Date().toISOString() },
-    { id: 7, payer: 'Trang', amount: 80000, note: 'Xà lách + dưa chuột + ớt chuông', date: new Date().toISOString() },
-    { id: 8, payer: 'Linh', amount: 60000, note: 'Than và cồn khô', date: new Date().toISOString() },
-    { id: 9, payer: 'QAnh', amount: 30000, note: 'Giấy bạc', date: new Date().toISOString() },
-    { id: 10, payer: 'Mai Anh', amount: 300000, note: 'Dưa hấu, dưa chuột, roi, xoài', date: new Date().toISOString() },
-  ]);
+  const [expenses, setExpenses] = useState(() => {
+    const saved = localStorage.getItem('splitmate_expenses');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, payer: 'Trang', amount: 491000, note: 'Aeon 1', date: new Date().toISOString() },
+      { id: 2, payer: 'Trang', amount: 77000, note: 'Aeon 2', date: new Date().toISOString() },
+      { id: 3, payer: 'Trang', amount: 120000, note: 'Thịt lợn', date: new Date().toISOString() },
+      { id: 4, payer: 'Trang', amount: 145000, note: 'Dưa vàng', date: new Date().toISOString() },
+      { id: 5, payer: 'Trang', amount: 15000, note: 'Bánh mì', date: new Date().toISOString() },
+      { id: 6, payer: 'Trang', amount: 120000, note: 'Thịt bò và nấm kim châm', date: new Date().toISOString() },
+      { id: 7, payer: 'Trang', amount: 80000, note: 'Xà lách + dưa chuột + ớt chuông', date: new Date().toISOString() },
+      { id: 8, payer: 'Linh', amount: 60000, note: 'Than và cồn khô', date: new Date().toISOString() },
+      { id: 9, payer: 'QAnh', amount: 30000, note: 'Giấy bạc', date: new Date().toISOString() },
+      { id: 10, payer: 'Mai Anh', amount: 300000, note: 'Dưa hấu, dưa chuột, roi, xoài', date: new Date().toISOString() },
+    ];
+  });
+
+  // Effects to save data to localStorage
+  useEffect(() => {
+    localStorage.setItem('splitmate_theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('splitmate_families', JSON.stringify(families));
+  }, [families]);
+
+  useEffect(() => {
+    localStorage.setItem('splitmate_expenses', JSON.stringify(expenses));
+  }, [expenses]);
 
   const [newExpense, setNewExpense] = useState({ payer: '', amount: '', note: '' });
   const [activeTab, setActiveTab] = useState('list');
