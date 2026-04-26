@@ -105,6 +105,7 @@ const App = () => {
     Danh sách thành viên: ${allMembers.join(', ')}.
     Nhóm: ${families.map(f => `${f.name}: ${f.members.join(',')}`).join('; ')}.
     Nếu người dùng nói tên nhóm, hãy gán cho thành viên đầu tiên của nhóm đó.
+    Hỗ trợ số tiền âm nếu người dùng nói về việc rút lại tiền hoặc hoàn tiền.
     Trả về JSON duy nhất: {"payer": "tên_người", "amount": số_tiền_number, "note": "nội_dung"}.`;
 
     try {
@@ -120,7 +121,7 @@ const App = () => {
       const data = await response.json();
       const result = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
 
-      if (result.amount > 0) {
+      if (result.amount !== 0) {
         setExpenses(prev => [{ id: Date.now(), ...result, date: new Date().toISOString() }, ...prev]);
         setMessages(prev => [...prev, { role: 'bot', text: `✅ Đã ghi nhận: ${result.payer} chi ${result.amount.toLocaleString()}đ cho "${result.note}"` }]);
       } else {
@@ -244,7 +245,7 @@ const App = () => {
           <div className="space-y-6 animate-in slide-in-from-bottom-4">
             {/* Form Thêm nhanh */}
             <form 
-              onSubmit={(e) => { e.preventDefault(); if(newExpense.amount && newExpense.note) { setExpenses([{ id: Date.now(), ...newExpense, amount: parseInt(newExpense.amount), date: new Date().toISOString() }, ...expenses]); setNewExpense({ ...newExpense, amount: '', note: '' }); } }}
+              onSubmit={(e) => { e.preventDefault(); if(newExpense.amount !== '' && newExpense.note) { setExpenses([{ id: Date.now(), ...newExpense, amount: parseInt(newExpense.amount), date: new Date().toISOString() }, ...expenses]); setNewExpense({ ...newExpense, amount: '', note: '' }); } }}
               className={`p-6 rounded-[2rem] shadow-sm border ${styles.card}`}
             >
               <div className="grid grid-cols-2 gap-4 mb-5">
